@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Gold Prices in SAR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #DAA520;
+        }
+        p {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        async function getGoldPrice() {
+            try {
+                // Fetch gold price in USD
+                const goldResponse = await fetch("https://www.goldapi.io/api/XAU/USD", {
+                    method: "GET",
+                    headers: {
+                        "x-access-token": "goldapi-2sikokusm6z8xmk8-io", // Replace with your API key
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                const goldData = await goldResponse.json();
+                const ouncePriceUSD = goldData.price; // Price per ounce in USD
+                const gramPriceUSD = (ouncePriceUSD / 31.1035).toFixed(2); // Convert to per gram USD
+
+                // Fetch exchange rate (USD to SAR)
+                const exchangeResponse = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+                const exchangeData = await exchangeResponse.json();
+                const usdToSarRate = exchangeData.rates.SAR; // Get USD to SAR conversion rate
+
+                // Convert gold prices to SAR
+                const price_24K = (gramPriceUSD * usdToSarRate).toFixed(2);
+                const price_21K = (price_24K * 0.875).toFixed(2); // 21K = 87.5% pure
+                const price_18K = (price_24K * 0.75).toFixed(2); // 18K = 75% pure
+
+                // Display in SAR
+                document.getElementById("price_24K").innerText = `SAR ${price_24K} per gram (24K)`;
+                document.getElementById("price_21K").innerText = `SAR ${price_21K} per gram (21K)`;
+                document.getElementById("price_18K").innerText = `SAR ${price_18K} per gram (18K)`;
+            } catch (error) {
+                console.error("Error fetching prices:", error);
+                document.getElementById("price_24K").innerText = "Error loading prices";
+                document.getElementById("price_21K").innerText = "Error loading prices";
+                document.getElementById("price_18K").innerText = "Error loading prices";
+            }
+        }
+
+        window.onload = getGoldPrice;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Live Gold Prices in SAR</h2>
+        <p id="price_24K">Loading...</p>
+        <p id="price_21K">Loading...</p>
+        <p id="price_18K">Loading...</p>
+    </div>
+</body>
+</html>
